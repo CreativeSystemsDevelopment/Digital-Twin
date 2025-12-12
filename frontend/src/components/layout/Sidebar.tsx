@@ -121,42 +121,6 @@ export function Sidebar() {
       </motion.aside>
     </>
   );
-}                  )}
-                  whileHover={{ x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeNav"
-                      className="absolute inset-0 bg-cyan-500/10 border border-cyan-500/30 rounded-xl"
-                      transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                  <Icon className="w-5 h-5 relative z-10" />
-                  <span className="font-medium relative z-10">{item.label}</span>
-                  {isActive && (
-                    <motion.div
-                      className="absolute left-0 w-1 h-8 bg-gradient-to-b from-cyan-400 to-purple-500 rounded-full"
-                      layoutId="activeIndicator"
-                    />
-                  )}
-                </motion.div>
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Status footer */}
-        <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)]">
-            <StatusOrb status="online" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">System Status</p>
-              <p className="text-xs text-[var(--text-muted)]">All services operational</p>
-            </div>
-          </div>
-        </div>
-      </motion.aside>
-    </>
+}
   );
 }

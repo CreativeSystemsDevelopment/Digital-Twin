@@ -53,7 +53,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
               transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
             />
           )}
-          {children}
+          {children as React.ReactNode}
         </span>
       </motion.button>
     );
