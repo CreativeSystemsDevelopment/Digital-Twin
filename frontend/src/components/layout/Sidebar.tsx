@@ -12,7 +12,6 @@ import {
   Zap
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { GradientText, StatusOrb } from '../ui';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: Home },
@@ -120,7 +119,5 @@ export function Sidebar() {
         </div>
       </motion.aside>
     </>
-  );
-}
   );
 }
