@@ -36,6 +36,22 @@ python scripts/scan_documents.py /path/to/production_lines --output metadata.jso
 
 5. Use the generated JSON to feed downstream indexing, QA, or knowledge graph steps.
 
+## Running the upload UI
+
+1. Install dependencies in editable mode (if you have not already):
+
+```bash
+pip install -e .
+```
+
+2. Start the FastAPI-powered upload interface:
+
+```bash
+digital-twin-web
+```
+
+3. Open `http://localhost:8000` in your browser. Use the form to upload PDF drawings, schematics, wiring diagrams, cabinet layouts, and parts lists. Files containing "schematic diagram" in their name are automatically flagged for processing in subsequent stages.
+
 ## Next Steps
 
 * Connect ingestion results to vector stores or graph databases.
