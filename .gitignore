@@ -1,9 +1,12 @@
+.venv
 __pycache__/
-*.py[cod]
-*.egg-info/
-.venv/
-.env
-.env.local
+*.pyc
 .DS_Store
-.idea/
-.vscode/
+.env
+
+# Local intake artifacts
+data/raw
+src/data/metadata.json
+src/data/processed/
+data/processed/
+env

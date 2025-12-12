@@ -1,3 +1,17 @@
+Metadata-Version: 2.4
+Name: digital-twin
+Version: 0.1.0
+Summary: Documentation intake service for diecast machine digital twin
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: uvicorn[standard]>=0.30.0
+Requires-Dist: python-multipart>=0.0.9
+Requires-Dist: pypdf>=4.3.1
+Requires-Dist: pdfplumber>=0.11.4
+Requires-Dist: python-dotenv>=1.0.1
+Requires-Dist: google-genai>=1.0.0
+
 # Digital Twin Documentation Pipeline
 
 This project ingests all documentation for a specific diecast machine and converts it into a searchable database/vector store for semantic querying. Initial scope is to intake and persist all raw documentation locally, then focus on schematic extraction.

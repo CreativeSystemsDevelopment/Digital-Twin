@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+src/digital_twin/__init__.py
+src/digital_twin/app.py
+src/digital_twin/config.py
+src/digital_twin/gemini_service.py
+src/digital_twin.egg-info/PKG-INFO
+src/digital_twin.egg-info/SOURCES.txt
+src/digital_twin.egg-info/dependency_links.txt
+src/digital_twin.egg-info/requires.txt
+src/digital_twin.egg-info/top_level.txt

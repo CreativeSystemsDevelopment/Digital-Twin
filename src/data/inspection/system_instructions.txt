@@ -1,0 +1,154 @@
+# UBE 1650 Die Casting Machine - Electrical Schematic Interpretation Guide
+
+## Document Information
+- Drawing Number: 151-E8810-202-0
+- Manufacturer: UBE Machinery Corporation, Ltd. (宇部興産機械株式会社)
+- Date: Sep 12, 2014
+
+---
+
+## SYMBOL LEGEND
+
+### Circuit Breakers & Protection
+| Mark | English Name | Japanese | Notes |
+|------|--------------|----------|-------|
+| MCB | Molded Case Circuit Breaker | サーキットブレーカ | 3P = 3-pole, 2P = 2-pole |
+| ELB | Earth Leakage Breaker | 漏電ブレーカ | Ground fault protection |
+| F | Fuse | ヒューズ | |
+| TH | Thermal Overload Relay | サーマルリレー | Motor protection |
+
+### Contactors & Relays
+| Mark | English Name | Japanese | Notes |
+|------|--------------|----------|-------|
+| MC | Magnetic Contactor | 電磁開閉器 | Power switching |
+| CR | Auxiliary Relay | 補助リレー | Control logic |
+| TR | Timer | タイマー | Time delay functions |
+
+### Contact Types
+| Symbol | English | Japanese | Description |
+|--------|---------|----------|-------------|
+| a | Make Contact (N.O.) | a接点 / メーク接点 | Normally Open - closes when energized |
+| b | Break Contact (N.C.) | b接点 / ブレーク接点 | Normally Closed - opens when energized |
+| N.O. | Normally Open | 常時開 | |
+| N.C. | Normally Closed | 常時閉 | |
+
+### Timer Contacts
+| Symbol | English | Japanese |
+|--------|---------|----------|
+| TR (N.O.) | Time Delay Closing Contact | 限時メーク接点 |
+| TR (N.C.) | Time Delay Opening Contact | 限時ブレーク接点 |
+| OFF DELAY | Off Delay Timer Normal Open | OFFディレイタイマ常時開接点 |
+
+### Switches
+| Mark | English Name | Japanese |
+|------|--------------|----------|
+| SS | Selector Switch | セレクトスイッチ |
+| CS | Control Switch | コントロールスイッチ |
+| PB | Push Button Switch | 押釦スイッチ |
+| PBL | Illuminated Push Button Switch | 照光式押釦スイッチ |
+| ESPB | Emergency Stop Push Button | 非常停止押釦スイッチ |
+| KS | Key Switch | キースイッチ |
+| SP | Plug Switch | プラグスイッチ |
+| SLS | Safety Switch | 安全スイッチ |
+
+### Limit & Proximity Switches
+| Mark | English Name | Japanese | Notes |
+|------|--------------|----------|-------|
+| LS | Limit Switch | リミットスイッチ | Single type |
+| LS (proximity) | Proximity Switch | 近接スイッチ | N.O. or N.C. variants |
+
+### Pressure, Flow, Level & Temperature Switches
+| Mark | English Name | Japanese | Notes |
+|------|--------------|----------|-------|
+| PS (NORMAL) | Pressure Switch (Positive) | 圧力スイッチ（正圧） | |
+| PS (VACUUM) | Pressure Switch (Vacuum) | 圧力スイッチ（負圧） | |
+| FL | Flow Switch | フロースイッチ | N.O. or N.C. |
+| LS (level) | Level Switch | レベルスイッチ | N.O. or N.C. |
+| LS (temp) | Temperature Switch | 温度スイッチ | N.O. or N.C. |
+
+### Valves & Actuators
+| Mark | English Name | Japanese |
+|------|--------------|----------|
+| SOL | Solenoid Valve | ソレノイドバルブ |
+| SOL-D | Solenoid Valve (specific type) | ソレノイドバルブ |
+
+### Motors & Transformers
+| Mark | English Name | Japanese |
+|------|--------------|----------|
+| M | Induction Motor | 誘動電動機 |
+| T | Transformer | トランス |
+
+### Indicators
+| Mark | English Name | Japanese |
+|------|--------------|----------|
+| PL | Pilot Lamp | 表示灯 |
+
+### Grounding
+| Mark | English Name | Japanese |
+|------|--------------|----------|
+| E / Earth | Earth/Ground | アース |
+
+---
+
+## READING CONVENTIONS
+
+### Wire Numbering
+- Wire numbers (線番 / WIRING NO.) appear adjacent to conductors
+- Format: 4-digit numbers (e.g., 2000, 2001, 2002)
+- Wire numbers identify each conductor for tracing and troubleshooting
+
+### Line Numbering
+- Each horizontal row has a LINE NO. (ライン番号)
+- Format: 4-digit numbers (e.g., 2003, 2004, 2005)
+- Used for cross-referencing between pages
+
+### Page References
+- Cross-page references format: "TO LINE {line#} OF PAGE {page#}"
+- Japanese format: "{page}ページのライン{line}へ"
+- Example: "TO LINE 10 OF PAGE 5" = "5ページのライン10へ"
+
+### Component Identification
+- Format: {TYPE}{NUMBER} (e.g., CR200, MCB10, SOL-1B)
+- Contact references: {component}-{line} (e.g., CR200-14 means CR200's contact on line 14)
+- Example: a200-14 = make contact of component on line 200, position 14
+- Example: b020-10 = break contact, line 020, position 10
+
+### Mechanical Connections
+- Dashed lines between components indicate mechanical coupling
+- Label: "MECHANICAL CONNECTION" (機械的に連結)
+- Example: CR220 mechanically linked to another device
+
+### External Terminals
+- Terminal box references shown as (TB-{id})
+- Example: (TB-1A) = Terminal Box 1A
+- EXTERNAL TERMINAL (外部端子) indicates field wiring connection point
+
+### Page Series Number
+- PAGE SERIES NO. (追番) provides sequential numbering within a page
+- Used for organizing multiple circuits on same page
+
+### Grid System
+- Columns: A through M (left to right)
+- Rows: 1 through 25 (top to bottom)
+- Grid position helps locate components on the page
+
+---
+
+## DIAGRAM STRUCTURE
+
+### Title Block (Bottom Right)
+- Drawing number
+- Date
+- Designer name
+- Revision number
+
+### Power Flow
+- Generally flows top to bottom
+- Horizontal buses at top for power distribution
+- Vertical rungs for individual circuits
+
+### Sequence Diagram Rules
+- "THIS SEQUENCE DIAGRAM ARE DRAWN BY FOLLOWING RULE"
+- "展開接続図は下記のルールにより書かれています"
+- Contacts shown in de-energized state
+- Control flows left to right within a rung
