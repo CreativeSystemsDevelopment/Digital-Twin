@@ -13,8 +13,8 @@ This project ingests all documentation for a specific diecast machine and conver
 3) (Optional) To use Gemini locally, copy `.env.example` to `.env` and set `GEMINI_API_KEY` (kept out of git).
 
 ## Run the local intake API + web UI
-- Start the service: `uvicorn digital_twin.app:app --reload --port 8000`
-- Open the web UI: http://127.0.0.1:8000 (upload form + file list)
+- Start the service: `uvicorn src.digital_twin.app:app --reload --port 8000`
+- Open the web UI: http://127.0.0.1:5173 (Frontend)
 - Health check: `curl http://127.0.0.1:8000/health`
 
 ### API examples (optional)
