@@ -14,7 +14,7 @@ import { Button } from '../components/ui/Button';
 import { StatusOrb } from '../components/ui/StatusOrb';
 
 export default function Settings() {
-  const [apiKey, setApiKey] = useState('sk-••••••••••••••••');
+  const [apiKey, setApiKey] = useState('');
   const [storageLimit, setStorageLimit] = useState('100');
   const [notifications, setNotifications] = useState(true);
 

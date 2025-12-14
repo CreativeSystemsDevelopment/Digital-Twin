@@ -25,8 +25,8 @@ interface Document {
 
 export default function Library() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedMachine, setSelectedMachine] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all_categories');
+  const [selectedMachine, setSelectedMachine] = useState('all_machines');
 
   const categories = [
     'All Categories',
@@ -91,8 +91,9 @@ export default function Library() {
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          doc.machine.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
-    const matchesMachine = selectedMachine === 'all' || doc.machine === selectedMachine;
+    const matchesCategory = selectedCategory === 'all_categories' || 
+                           doc.category.toLowerCase().replace(/\s+/g, '_') === selectedCategory;
+    const matchesMachine = selectedMachine === 'all_machines' || doc.machine === selectedMachine;
     return matchesSearch && matchesCategory && matchesMachine;
   });
 
@@ -152,7 +153,7 @@ export default function Library() {
                   className="neo-input w-full pl-10"
                 >
                   {machines.map(machine => (
-                    <option key={machine} value={machine.toLowerCase().replace(' ', '_')}>
+                    <option key={machine} value={machine.toLowerCase().replace(/\s+/g, '_')}>
                       {machine}
                     </option>
                   ))}
@@ -174,7 +175,7 @@ export default function Library() {
                   className="neo-input w-full pl-10"
                 >
                   {categories.map(category => (
-                    <option key={category} value={category.toLowerCase().replace(' ', '_')}>
+                    <option key={category} value={category.toLowerCase().replace(/\s+/g, '_')}>
                       {category}
                     </option>
                   ))}

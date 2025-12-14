@@ -16,9 +16,20 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { StatusOrb } from '../components/ui/StatusOrb';
 
+interface ExtractionResults {
+  pagesProcessed: number;
+  totalPages: number;
+  componentsExtracted: number;
+  wiresExtracted: number;
+  crossRefsExtracted: number;
+  processingTime: string;
+  tokensUsed: number;
+  cacheHits: number;
+}
+
 export default function Extraction() {
   const [isExtracting, setIsExtracting] = useState(false);
-  const [extractionResults, setExtractionResults] = useState<any>(null);
+  const [extractionResults, setExtractionResults] = useState<ExtractionResults | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<string>('');
 
   const documents = [
