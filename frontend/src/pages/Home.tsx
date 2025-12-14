@@ -1,94 +1,119 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { FileStack, Database, Library, Zap } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
-  const [activeModal, setActiveModal] = useState<'import' | null>(null);
-  const [machineId, setMachineId] = useState('');
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   const menuItems = [
-    { id: 'data', label: 'Data', action: () => console.log('Data clicked') },
-    { id: 'library', label: 'Library', action: () => console.log('Library clicked') },
-    { id: 'import', label: 'Import', action: () => navigate('/documents') },
+    { 
+      id: 'data', 
+      label: 'Dashboard', 
+      icon: Database,
+      description: 'View system overview',
+      action: () => navigate('/dashboard') 
+    },
+    { 
+      id: 'library', 
+      label: 'Library', 
+      icon: Library,
+      description: 'Browse documents',
+      action: () => navigate('/library') 
+    },
+    { 
+      id: 'import', 
+      label: 'Import', 
+      icon: FileStack,
+      description: 'Upload documents',
+      action: () => navigate('/documents') 
+    },
   ];
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && machineId.trim()) {
-      console.log('Submitting machine:', machineId);
-      navigate('/documents');
-      setActiveModal(null);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-black text-white/90 flex items-center justify-center selection:bg-white/20 font-light overflow-hidden">
+    <div className="min-h-screen bg-gradient-animated p-6 md:p-12 flex items-center justify-center overflow-hidden">
       
-      {/* Ambient Background Glow */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-white/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-white/5 rounded-full blur-[120px]" />
-      </div>
+      {/* Logo Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="absolute top-12 left-1/2 transform -translate-x-1/2 flex items-center gap-3"
+      >
+        <div className="neo-raised p-4">
+          <Zap size={32} style={{ color: 'var(--accent-primary)' }} />
+        </div>
+        <h1 className="text-3xl font-bold gradient-text">
+          Digital Twin
+        </h1>
+      </motion.div>
 
       {/* Main Menu */}
-      <div className="relative z-10 flex gap-12 items-center">
-        {menuItems.map((item) => (
-          <motion.button
-            key={item.id}
-            onClick={item.action}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            className="group relative py-2"
-          >
-            <span className="text-xl font-thin tracking-[0.2em] text-white/40 group-hover:text-white transition-all duration-500 uppercase group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
-              {item.label}
-            </span>
-          </motion.button>
-        ))}
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full">
+        {menuItems.map((item, index) => {
+          const Icon = item.icon;
+          return (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
+              onMouseEnter={() => setHoveredItem(item.id)}
+              onMouseLeave={() => setHoveredItem(null)}
+            >
+              <button
+                onClick={item.action}
+                className="neo-raised w-full h-64 p-8 flex flex-col items-center justify-center text-center group"
+              >
+                <motion.div
+                  animate={hoveredItem === item.id ? { scale: 1.1, rotate: 5 } : { scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="neo-flat p-6 rounded-full mb-6"
+                >
+                  <Icon size={48} style={{ color: 'var(--accent-primary)' }} />
+                </motion.div>
+                
+                <h2 
+                  className="text-2xl font-bold mb-3" 
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {item.label}
+                </h2>
+                
+                <p 
+                  className="text-sm" 
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  {item.description}
+                </p>
+
+                {hoveredItem === item.id && (
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: '60%' }}
+                    transition={{ duration: 0.3 }}
+                    className="h-1 rounded-full mt-6"
+                    style={{ background: 'var(--gradient-accent)' }}
+                  />
+                )}
+              </button>
+            </motion.div>
+          );
+        })}
       </div>
 
-      {/* Import Modal */}
-      <AnimatePresence>
-        {activeModal === 'import' && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setActiveModal(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-
-            {/* Modal Content */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
-              animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
-              className="relative"
-            >
-              <div className="flex items-baseline gap-4">
-                <label 
-                  htmlFor="machine-id" 
-                  className="text-xl font-thin text-white/60 uppercase tracking-[0.2em] whitespace-nowrap"
-                >
-                  Machine -
-                </label>
-                <input
-                  id="machine-id"
-                  type="text"
-                  value={machineId}
-                  onChange={(e) => setMachineId(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="enter name"
-                  className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none ring-0 text-xl font-thin text-white placeholder-white/20 tracking-wider w-64"
-                  autoFocus
-                />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Footer */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 1 }}
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+      >
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          Document Processing & AI Extraction System
+        </p>
+      </motion.div>
     </div>
   );
 }

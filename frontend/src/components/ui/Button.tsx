@@ -1,6 +1,7 @@
 import { motion, type HTMLMotionProps } from 'framer-motion';
 import { forwardRef } from 'react';
 import { cn } from '../../lib/utils';
+import { Loader2 } from 'lucide-react';
 
 interface ButtonProps extends HTMLMotionProps<'button'> {
   variant?: 'primary' | 'secondary' | 'ghost';
@@ -10,12 +11,12 @@ interface ButtonProps extends HTMLMotionProps<'button'> {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
-    const baseStyles = 'relative inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-300 cursor-pointer overflow-hidden';
+    const baseStyles = 'relative inline-flex items-center justify-center font-semibold transition-all duration-200 cursor-pointer';
     
     const variants = {
-      primary: 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:shadow-[0_0_30px_rgba(0,240,255,0.4)] hover:-translate-y-0.5',
-      secondary: 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-white/10 hover:border-cyan-500/50 hover:shadow-[0_0_20px_rgba(0,240,255,0.2)]',
-      ghost: 'bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5',
+      primary: 'neo-button-primary',
+      secondary: 'neo-button',
+      ghost: 'neo-flat',
     };
 
     const sizes = {
@@ -32,26 +33,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           baseStyles,
           variants[variant],
           sizes[size],
-          (disabled || isLoading) && 'opacity-50 cursor-not-allowed',
           className
         )}
         disabled={disabled || isLoading}
         {...props}
       >
-        {isLoading && (
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-            animate={{ x: ['-100%', '100%'] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-          />
-        )}
         <span className="relative z-10 flex items-center gap-2">
           {isLoading && (
-            <motion.div
-              className="w-4 h-4 border-2 border-current border-t-transparent rounded-full"
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
-            />
+            <Loader2 size={16} className="animate-spin" />
           )}
           {children as React.ReactNode}
         </span>

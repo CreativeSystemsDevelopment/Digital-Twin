@@ -3,27 +3,24 @@ import { forwardRef } from 'react';
 import { cn } from '../../lib/utils';
 
 interface CardProps extends HTMLMotionProps<'div'> {
-  variant?: 'default' | 'glow' | 'glass';
+  variant?: 'raised' | 'inset' | 'flat';
   hover?: boolean;
 }
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant = 'default', hover = true, children, ...props }, ref) => {
-    const baseStyles = 'rounded-2xl p-6';
-    
+  ({ className, variant = 'raised', hover = true, children, ...props }, ref) => {
     const variants = {
-      default: 'bg-[var(--bg-card)] border border-white/5',
-      glow: 'glow-border',
-      glass: 'glass',
+      raised: 'neo-raised',
+      inset: 'neo-inset',
+      flat: 'neo-flat',
     };
 
     return (
       <motion.div
         ref={ref}
         className={cn(
-          baseStyles,
+          'p-6',
           variants[variant],
-          hover && 'glow-hover',
           className
         )}
         initial={{ opacity: 0, y: 20 }}
