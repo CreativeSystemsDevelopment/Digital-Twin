@@ -1,20 +1,22 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
+  const navigate = useNavigate();
   const [activeModal, setActiveModal] = useState<'import' | null>(null);
   const [machineId, setMachineId] = useState('');
 
   const menuItems = [
     { id: 'data', label: 'Data', action: () => console.log('Data clicked') },
     { id: 'library', label: 'Library', action: () => console.log('Library clicked') },
-    { id: 'import', label: 'Import', action: () => setActiveModal('import') },
+    { id: 'import', label: 'Import', action: () => navigate('/documents') },
   ];
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && machineId.trim()) {
       console.log('Submitting machine:', machineId);
-      // TODO: Handle submission
+      navigate('/documents');
       setActiveModal(null);
     }
   };
