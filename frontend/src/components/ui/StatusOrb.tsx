@@ -1,30 +1,11 @@
-import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
 
 interface StatusOrbProps {
-  status: 'online' | 'processing' | 'offline' | 'warning';
+  status: 'online' | 'processing' | 'offline' | 'warning' | 'success' | 'error';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  label?: string;
 }
-
-const statusColors = {
-  online: {
-    bg: 'bg-cyan-400',
-    glow: 'shadow-[0_0_10px_rgba(0,240,255,0.6),0_0_20px_rgba(0,240,255,0.3)]',
-  },
-  processing: {
-    bg: 'bg-purple-500',
-    glow: 'shadow-[0_0_10px_rgba(168,85,247,0.6),0_0_20px_rgba(168,85,247,0.3)]',
-  },
-  offline: {
-    bg: 'bg-gray-500',
-    glow: '',
-  },
-  warning: {
-    bg: 'bg-amber-500',
-    glow: 'shadow-[0_0_10px_rgba(245,158,11,0.6),0_0_20px_rgba(245,158,11,0.3)]',
-  },
-};
 
 const sizes = {
   sm: 'w-2 h-2',
@@ -32,27 +13,20 @@ const sizes = {
   lg: 'w-4 h-4',
 };
 
-export function StatusOrb({ status, size = 'md', className }: StatusOrbProps) {
-  const colors = statusColors[status];
+export function StatusOrb({ status, size = 'md', className, label }: StatusOrbProps) {
+  const orbClass = status === 'online' || status === 'success' ? 'pulse-orb-success' :
+                   status === 'processing' ? 'pulse-orb-processing' :
+                   status === 'warning' || status === 'error' ? 'pulse-orb-error' :
+                   'pulse-orb';
   
   return (
-    <motion.div
-      className={cn(
-        'rounded-full',
-        sizes[size],
-        colors.bg,
-        colors.glow,
-        className
+    <div className={cn('flex items-center gap-2', className)}>
+      <div className={cn('pulse-orb', sizes[size], orbClass)} />
+      {label && (
+        <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+          {label}
+        </span>
       )}
-      animate={status !== 'offline' ? {
-        scale: [1, 1.2, 1],
-        opacity: [1, 0.8, 1],
-      } : undefined}
-      transition={{
-        duration: 2,
-        repeat: Infinity,
-        ease: 'easeInOut',
-      }}
-    />
+    </div>
   );
 }

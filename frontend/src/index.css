@@ -1,47 +1,32 @@
 @import "tailwindcss";
 
-/* Custom CSS Variables for the neomorphic theme */
+/* Custom CSS Variables for the neomorphic theme - DARK MODE DEFAULT */
 :root {
-  /* Neomorphic base colors */
-  --neo-bg: #e0e5ec;
-  --neo-shadow-light: rgba(255, 255, 255, 0.8);
-  --neo-shadow-dark: rgba(163, 177, 198, 0.6);
+  /* Dark neomorphic theme (default) */
+  --neo-bg: #1a1d29;
+  --neo-shadow-light: rgba(255, 255, 255, 0.05);
+  --neo-shadow-dark: rgba(0, 0, 0, 0.5);
   
-  /* Dark mode neomorphic */
-  --neo-bg-dark: #1a1d29;
-  --neo-shadow-light-dark: rgba(255, 255, 255, 0.05);
-  --neo-shadow-dark-dark: rgba(0, 0, 0, 0.5);
-  
-  /* Accent colors */
+  /* Accent colors - vibrant for dark theme */
   --accent-primary: #6366f1;
   --accent-success: #10b981;
   --accent-warning: #f59e0b;
   --accent-error: #ef4444;
   
-  /* Text colors */
-  --text-primary: #2d3748;
-  --text-secondary: #718096;
-  --text-muted: #a0aec0;
-  
-  /* Dark mode text */
-  --text-primary-dark: #e2e8f0;
-  --text-secondary-dark: #cbd5e0;
-  --text-muted-dark: #718096;
+  /* Dark mode text colors */
+  --text-primary: #e2e8f0;
+  --text-secondary: #cbd5e0;
+  --text-muted: #94a3b8;
   
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --gradient-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-}
-
-/* Dark mode */
-.dark {
-  --neo-bg: var(--neo-bg-dark);
-  --neo-shadow-light: var(--neo-shadow-light-dark);
-  --neo-shadow-dark: var(--neo-shadow-dark-dark);
-  --text-primary: var(--text-primary-dark);
-  --text-secondary: var(--text-secondary-dark);
-  --text-muted: var(--text-muted-dark);
+  
+  /* Background variants for depth */
+  --bg-secondary: #141721;
+  --bg-tertiary: #0f1118;
+  --bg-card: rgba(26, 29, 41, 0.8);
 }
 
 /* Base styles */
@@ -223,12 +208,12 @@ body {
   color: var(--text-muted);
 }
 
-/* Animated gradient background */
+/* Animated gradient background - dark theme */
 .bg-gradient-animated {
   background: linear-gradient(
     135deg,
     var(--neo-bg) 0%,
-    #d5dae5 50%,
+    #1e2230 50%,
     var(--neo-bg) 100%
   );
   background-size: 400% 400%;

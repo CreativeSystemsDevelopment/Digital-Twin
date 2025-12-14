@@ -5,7 +5,7 @@ import {
   Home, 
   Upload, 
   Cpu, 
-  FileText, 
+  Library, 
   Settings, 
   Menu, 
   X,
@@ -14,10 +14,11 @@ import {
 import { cn } from '../../lib/utils';
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: Home },
-  { path: '/upload', label: 'Import', icon: Upload },
+  { path: '/', label: 'Home', icon: Home },
+  { path: '/dashboard', label: 'Dashboard', icon: Cpu },
+  { path: '/documents', label: 'Import', icon: Upload },
+  { path: '/library', label: 'Library', icon: Library },
   { path: '/extraction', label: 'AI Extraction', icon: Cpu },
-  { path: '/documents', label: 'Documents', icon: FileText },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -29,18 +30,19 @@ export function Sidebar() {
     <>
       {/* Mobile menu button */}
       <motion.button
-        className="lg:hidden fixed top-4 left-4 z-50 p-3 rounded-xl bg-[var(--bg-card)] border border-white/10"
+        className="lg:hidden fixed top-4 left-4 z-50 neo-raised p-3"
         onClick={() => setIsOpen(!isOpen)}
         whileTap={{ scale: 0.95 }}
       >
-        {isOpen ? <X size={24} /> : <Menu size={24} />}
+        {isOpen ? <X size={24} style={{ color: 'var(--text-primary)' }} /> : <Menu size={24} style={{ color: 'var(--text-primary)' }} />}
       </motion.button>
 
       {/* Backdrop for mobile */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="lg:hidden fixed inset-0 z-40"
+            style={{ background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(8px)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -53,27 +55,27 @@ export function Sidebar() {
       <motion.aside
         className={cn(
           'fixed lg:static inset-y-0 left-0 z-40',
-          'w-64 lg:w-48', // Reduced width
-          'bg-[var(--bg-secondary)] border-r border-white/5',
+          'w-64 lg:w-56',
           'flex flex-col',
           'transform lg:transform-none transition-transform duration-300',
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
+        style={{ background: 'var(--bg-secondary)' }}
       >
         {/* Logo */}
-        <div className="h-14 flex items-center px-4 border-b border-white/5">
-          <Link to="/" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
-            <div className="w-6 h-6 rounded bg-cyan-900/50 flex items-center justify-center border border-cyan-500/20">
-              <Zap className="w-3 h-3 text-cyan-400" />
+        <div className="h-16 flex items-center px-4 neo-flat mx-3 my-3">
+          <Link to="/" className="flex items-center gap-2 w-full" onClick={() => setIsOpen(false)}>
+            <div className="neo-inset w-8 h-8 rounded-lg flex items-center justify-center">
+              <Zap className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
             </div>
-            <span className="text-sm font-medium tracking-tight text-white/90">
+            <span className="text-sm font-semibold gradient-text">
               Digital Twin
             </span>
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 py-2 px-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
@@ -87,23 +89,26 @@ export function Sidebar() {
               >
                 <div
                   className={cn(
-                    'relative flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200',
+                    'relative flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200',
                     isActive 
-                      ? 'bg-white/5 text-cyan-400' 
-                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/5'
+                      ? 'neo-inset' 
+                      : 'neo-flat hover:neo-raised'
                   )}
                 >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute left-0 w-0.5 h-full bg-cyan-500 rounded-full"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                    />
-                  )}
-                  <Icon size={16} className={cn("transition-colors", isActive ? "text-cyan-400" : "text-white/40")} />
-                  <span className="text-xs font-medium">{item.label}</span>
+                  <Icon 
+                    size={18} 
+                    style={{ 
+                      color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)' 
+                    }} 
+                  />
+                  <span 
+                    className="text-sm font-medium"
+                    style={{ 
+                      color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)' 
+                    }}
+                  >
+                    {item.label}
+                  </span>
                 </div>
               </Link>
             );
@@ -111,10 +116,12 @@ export function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t border-white/5">
-          <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-white/5 border border-white/5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-wider">System Online</span>
+        <div className="p-3">
+          <div className="neo-inset px-3 py-2 flex items-center gap-2">
+            <div className="pulse-orb pulse-orb-success" />
+            <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+              System Online
+            </span>
           </div>
         </div>
       </motion.aside>
