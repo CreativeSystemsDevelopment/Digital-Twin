@@ -11,6 +11,10 @@ src/data/processed/
 data/processed/
 env
 
+# Monitor state files
+data/monitor_state.json
+src/data/monitor_state.json
+
 # Logs
 logs/
 *.log
