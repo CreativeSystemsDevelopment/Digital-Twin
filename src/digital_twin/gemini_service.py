@@ -13,6 +13,7 @@ from google import genai
 from google.genai import types
 
 from .config import get_gemini_api_key
+from .agent_monitor import get_monitor, AgentStatus
 
 
 @dataclass
@@ -78,11 +79,22 @@ class StepLogger:
 class GeminiExtractor:
     """Handles Gemini API interactions for schematic extraction."""
     
-    def __init__(self, logger: Optional[StepLogger] = None):
+    def __init__(self, logger: Optional[StepLogger] = None, agent_id: Optional[str] = None):
         self.logger = logger or StepLogger()
         self.client: Optional[genai.Client] = None
         self.cache: Optional[types.CachedContent] = None
         self.uploaded_files: dict = {}
+        self.agent_id = agent_id
+        self.current_task_id: Optional[str] = None
+        
+        # Register with monitor if agent_id provided
+        if not self.agent_id:
+            monitor = get_monitor()
+            self.agent_id = monitor.register_agent(
+                name=f"GeminiExtractor-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                agent_type="gemini_extractor",
+                metadata={"created_at": datetime.now().isoformat()}
+            )
     
     def _log(self, name: str, status: str, message: str = "", **details):
         return self.logger.log(name, status, message, **details)
@@ -213,20 +225,46 @@ class GeminiExtractor:
                              total_pages: int = 129) -> dict:
         """Run a complete sample extraction workflow with logging."""
         
+        monitor = get_monitor()
         start_time = time.time()
         results = {
             "success": False,
             "steps": [],
             "extractions": [],
-            "total_duration_ms": 0
+            "total_duration_ms": 0,
+            "agent_id": self.agent_id
         }
+        
+        # Create a task in the monitor
+        try:
+            self.current_task_id = monitor.assign_task(
+                agent_id=self.agent_id,
+                description=f"Extract {num_pages} sample pages from schematic",
+                task_type="sample_extraction",
+                metadata={
+                    "num_pages": num_pages,
+                    "total_pages": total_pages,
+                    "schematic": str(schematic_path)
+                }
+            )
+            monitor.update_task_status(self.current_task_id, AgentStatus.RUNNING)
+            monitor.update_agent_status(self.agent_id, AgentStatus.RUNNING, 
+                                       "Starting extraction workflow")
+        except Exception:
+            pass  # Continue even if monitoring fails
         
         # Step 1: Initialize client
         self._log("Workflow Start", "running", "Starting extraction workflow...")
         
         if not self.initialize_client():
+            monitor.update_task_status(self.current_task_id, AgentStatus.FAILED, 
+                                      "Failed to initialize Gemini client")
+            monitor.update_agent_status(self.agent_id, AgentStatus.FAILED)
             results["steps"] = self.logger.get_all_steps()
             return results
+        
+        monitor.heartbeat(self.agent_id, self.current_task_id)
+        monitor.update_task_progress(self.current_task_id, 0.1)
         
         # Step 2: Upload files
         self._log("Upload Files", "running", "Uploading reference documents...")
@@ -236,16 +274,24 @@ class GeminiExtractor:
         schematic_file = self.upload_file(schematic_path, "schematic.pdf")
         
         if not all([legend_file, reading_file, schematic_file]):
+            monitor.update_task_status(self.current_task_id, AgentStatus.FAILED, 
+                                      "Failed to upload files")
+            monitor.update_agent_status(self.agent_id, AgentStatus.FAILED)
             results["steps"] = self.logger.get_all_steps()
             return results
         
         self._log("Upload Files", "completed", "All files uploaded successfully")
+        monitor.heartbeat(self.agent_id, self.current_task_id)
+        monitor.update_task_progress(self.current_task_id, 0.3)
         
         # Step 3: Load system instructions
         self._log("Load System Instructions", "running", "Loading system instructions...")
         system_instructions = system_instructions_path.read_text(encoding="utf-8")
         self._log("Load System Instructions", "completed", 
                  f"Loaded {len(system_instructions)} characters")
+        
+        monitor.heartbeat(self.agent_id, self.current_task_id)
+        monitor.update_task_progress(self.current_task_id, 0.4)
         
         # Step 4: Create cache
         cache = self.create_cache(
@@ -257,8 +303,14 @@ class GeminiExtractor:
         )
         
         if not cache:
+            monitor.update_task_status(self.current_task_id, AgentStatus.FAILED, 
+                                      "Failed to create cache")
+            monitor.update_agent_status(self.agent_id, AgentStatus.FAILED)
             results["steps"] = self.logger.get_all_steps()
             return results
+        
+        monitor.heartbeat(self.agent_id, self.current_task_id)
+        monitor.update_task_progress(self.current_task_id, 0.5)
         
         # Step 5: Random page selection
         self._log("Select Pages", "running", f"Selecting {num_pages} random pages...")
@@ -270,6 +322,9 @@ class GeminiExtractor:
         self._log("Select Pages", "completed", 
                  f"Selected pages: {selected_pages}",
                  selected_pages=selected_pages)
+        
+        monitor.update_agent_status(self.agent_id, AgentStatus.RUNNING, 
+                                   f"Extracting {len(selected_pages)} pages")
         
         # Step 6: Extract each page
         extraction_prompt_template = """
@@ -292,11 +347,20 @@ Extract all components and connections visible on this page. Return as JSON:
 }}
 """
         
-        for page_num in selected_pages:
+        for i, page_num in enumerate(selected_pages):
             prompt = extraction_prompt_template.format(page_num=page_num)
             extraction = self.extract_page(page_num, prompt, use_cache=True)
             if extraction:
                 results["extractions"].append(extraction)
+            
+            # Update progress based on pages extracted
+            progress = 0.5 + (0.4 * (i + 1) / len(selected_pages))
+            monitor.update_task_progress(
+                self.current_task_id, 
+                progress,
+                pages_completed=[p for p in selected_pages[:i+1]]
+            )
+            monitor.heartbeat(self.agent_id, self.current_task_id)
         
         # Finalize
         total_duration = (time.time() - start_time) * 1000
@@ -304,9 +368,17 @@ Extract all components and connections visible on this page. Return as JSON:
                  f"Extraction complete in {total_duration:.0f}ms",
                  total_pages_extracted=len(results["extractions"]))
         
+        # Update monitor with completion
+        monitor.update_task_progress(self.current_task_id, 1.0, 
+                                    pages_completed=selected_pages)
+        monitor.update_task_status(self.current_task_id, AgentStatus.COMPLETED)
+        monitor.update_agent_status(self.agent_id, AgentStatus.COMPLETED, 
+                                   "Extraction workflow completed")
+        
         results["success"] = True
         results["steps"] = self.logger.get_all_steps()
         results["total_duration_ms"] = round(total_duration, 2)
+        results["task_id"] = self.current_task_id
         
         return results
 

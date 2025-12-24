@@ -12,6 +12,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse, StreamingResponse
 
 from .config import get_gemini_api_key
+from .agent_monitor import get_monitor, AgentStatus, TaskPriority
 
 app = FastAPI(title="Digital Twin Document Intake", version="0.1.0")
 
@@ -1165,3 +1166,506 @@ def extract_sample() -> dict:
     )
     
     return result
+
+
+# ============================================================================
+# Agent Monitoring Endpoints
+# ============================================================================
+
+@app.get("/monitor/agents")
+async def list_agents():
+    """Get a list of all registered agents."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    agents = monitor.get_all_agents()
+    return {
+        "agents": [agent.to_dict() for agent in agents],
+        "total": len(agents)
+    }
+
+
+@app.get("/monitor/agents/{agent_id}")
+async def get_agent_details(agent_id: str):
+    """Get detailed information about a specific agent."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    summary = monitor.get_agent_summary(agent_id)
+    
+    if not summary:
+        raise HTTPException(status_code=404, detail=f"Agent {agent_id} not found")
+    
+    return summary
+
+
+@app.post("/monitor/agents/register")
+async def register_agent(name: str, agent_type: str, metadata: Optional[dict] = None):
+    """Register a new agent with the monitoring system."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    agent_id = monitor.register_agent(name, agent_type, metadata)
+    
+    return {
+        "agent_id": agent_id,
+        "message": f"Agent '{name}' registered successfully"
+    }
+
+
+@app.put("/monitor/agents/{agent_id}/status")
+async def update_agent_status(agent_id: str, status: str, activity: Optional[str] = None):
+    """Update an agent's status."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    
+    try:
+        agent_status = AgentStatus(status)
+        monitor.update_agent_status(agent_id, agent_status, activity)
+        return {"message": f"Agent {agent_id} status updated to {status}"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/monitor/agents/{agent_id}/heartbeat")
+async def agent_heartbeat(agent_id: str, current_task_id: Optional[str] = None):
+    """Record an agent heartbeat."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    
+    try:
+        monitor.heartbeat(agent_id, current_task_id)
+        return {"message": "Heartbeat recorded"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/monitor/tasks")
+async def list_tasks(agent_id: Optional[str] = None, status: Optional[str] = None):
+    """Get a list of all tasks, optionally filtered by agent or status."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    
+    task_status = AgentStatus(status) if status else None
+    tasks = monitor.get_all_tasks(agent_id, task_status)
+    
+    return {
+        "tasks": [task.to_dict() for task in tasks],
+        "total": len(tasks)
+    }
+
+
+@app.get("/monitor/tasks/{task_id}")
+async def get_task_details(task_id: str):
+    """Get detailed information about a specific task."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    task = monitor.get_task(task_id)
+    
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    
+    return task.to_dict()
+
+
+@app.post("/monitor/tasks/assign")
+async def assign_task(
+    agent_id: str,
+    description: str,
+    task_type: str,
+    priority: str = "normal",
+    pages: Optional[List[int]] = None,
+    metadata: Optional[dict] = None
+):
+    """Assign a new task to an agent."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    
+    try:
+        task_priority = TaskPriority(priority)
+        task_id = monitor.assign_task(
+            agent_id, description, task_type, task_priority, pages, metadata
+        )
+        return {
+            "task_id": task_id,
+            "message": f"Task assigned to agent {agent_id}"
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.put("/monitor/tasks/{task_id}/status")
+async def update_task_status(task_id: str, status: str, error: Optional[str] = None):
+    """Update a task's status."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    
+    try:
+        task_status = AgentStatus(status)
+        monitor.update_task_status(task_id, task_status, error)
+        return {"message": f"Task {task_id} status updated to {status}"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.put("/monitor/tasks/{task_id}/progress")
+async def update_task_progress(task_id: str, progress: float, pages_completed: Optional[List[int]] = None):
+    """Update a task's progress."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    
+    try:
+        monitor.update_task_progress(task_id, progress, pages_completed)
+        return {"message": f"Task {task_id} progress updated to {progress:.1%}"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/monitor/summary")
+async def get_monitor_summary():
+    """Get an overall summary of all agents and tasks."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    return monitor.get_overall_summary()
+
+
+@app.get("/monitor/incomplete")
+async def get_incomplete_tasks():
+    """Get all tasks that are not yet completed."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    tasks = monitor.get_incomplete_tasks()
+    
+    return {
+        "incomplete_tasks": [task.to_dict() for task in tasks],
+        "total": len(tasks)
+    }
+
+
+@app.get("/monitor/stalled")
+async def check_stalled_agents(timeout_seconds: float = 300):
+    """Check for agents that haven't sent a heartbeat recently."""
+    monitor = get_monitor(DATA_ROOT / "monitor_state.json")
+    stalled = monitor.check_stalled_agents(timeout_seconds)
+    
+    return {
+        "stalled_agents": stalled,
+        "total": len(stalled),
+        "timeout_seconds": timeout_seconds
+    }
+
+
+@app.get("/monitor/dashboard", response_class=HTMLResponse)
+async def monitor_dashboard():
+    """Display a monitoring dashboard."""
+    return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Monitor Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #1a2a3a 100%);
+            color: #e0e0e0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: rgba(0, 212, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        h1 {
+            color: #00d4ff;
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: rgba(13, 27, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: #888;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .section {
+            background: rgba(13, 27, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .section-title {
+            color: #00d4ff;
+            font-size: 20px;
+            margin-bottom: 16px;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .agent-list, .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .agent-item, .task-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-pending { border-left-color: #666; }
+        .status-running { border-left-color: #ffaa00; }
+        .status-completed { border-left-color: #00ff88; }
+        .status-failed { border-left-color: #ff4444; }
+        .status-paused { border-left-color: #888; }
+        
+        .agent-info, .task-info {
+            flex: 1;
+        }
+        
+        .agent-name, .task-description {
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        
+        .agent-type, .task-type {
+            color: #888;
+            font-size: 12px;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-badge.pending { background: #666; color: #fff; }
+        .status-badge.running { background: #ffaa00; color: #000; }
+        .status-badge.completed { background: #00ff88; color: #000; }
+        .status-badge.failed { background: #ff4444; color: #fff; }
+        .status-badge.paused { background: #888; color: #fff; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            transition: width 0.3s ease;
+        }
+        
+        .refresh-btn {
+            background: #00d4ff;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            background: #00ff88;
+            transform: translateY(-2px);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        
+        .last-updated {
+            color: #666;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Agent Monitor Dashboard</h1>
+            <p class="subtitle">Real-time monitoring of schematic extraction agents</p>
+            <p class="last-updated" id="lastUpdated">Loading...</p>
+        </header>
+        
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalAgents">-</div>
+                <div class="stat-label">Total Agents</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="runningAgents">-</div>
+                <div class="stat-label">Running</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalTasks">-</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="completedTasks">-</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="overallProgress">-</div>
+                <div class="stat-label">Overall Progress</div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 24px; text-align: center;">
+            <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Agents</h2>
+            <div class="agent-list" id="agentList">
+                <div class="loading">Loading agents...</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Recent Tasks</h2>
+            <div class="task-list" id="taskList">
+                <div class="loading">Loading tasks...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function loadData() {
+            try {
+                // Load summary
+                const summaryResp = await fetch('/monitor/summary');
+                const summary = await summaryResp.json();
+                
+                // Update stats
+                document.getElementById('totalAgents').textContent = summary.total_agents;
+                document.getElementById('runningAgents').textContent = summary.agents_by_status.running || 0;
+                document.getElementById('totalTasks').textContent = summary.total_tasks;
+                document.getElementById('completedTasks').textContent = summary.tasks_by_status.completed || 0;
+                document.getElementById('overallProgress').textContent = 
+                    (summary.overall_progress * 100).toFixed(1) + '%';
+                
+                // Update agents
+                const agentList = document.getElementById('agentList');
+                if (summary.agents.length === 0) {
+                    agentList.innerHTML = '<div class="empty-state">No agents registered yet</div>';
+                } else {
+                    agentList.innerHTML = summary.agents.map(agent => `
+                        <div class="agent-item status-${agent.status}">
+                            <div class="agent-info">
+                                <div class="agent-name">${agent.name}</div>
+                                <div class="agent-type">${agent.agent_type} • Completed: ${agent.tasks_completed} • Failed: ${agent.tasks_failed}</div>
+                                ${agent.last_activity ? `<div class="agent-type">Latest: ${agent.last_activity}</div>` : ''}
+                            </div>
+                            <span class="status-badge ${agent.status}">${agent.status}</span>
+                        </div>
+                    `).join('');
+                }
+                
+                // Load and display tasks
+                const tasksResp = await fetch('/monitor/tasks');
+                const tasksData = await tasksResp.json();
+                
+                const taskList = document.getElementById('taskList');
+                if (tasksData.tasks.length === 0) {
+                    taskList.innerHTML = '<div class="empty-state">No tasks yet</div>';
+                } else {
+                    // Sort by created_at desc, show latest 20
+                    const recentTasks = tasksData.tasks
+                        .sort((a, b) => b.created_at - a.created_at)
+                        .slice(0, 20);
+                    
+                    taskList.innerHTML = recentTasks.map(task => {
+                        const progressPercent = (task.progress * 100).toFixed(0);
+                        return `
+                            <div class="task-item status-${task.status}">
+                                <div class="task-info">
+                                    <div class="task-description">${task.description}</div>
+                                    <div class="task-type">
+                                        ${task.task_type} • Priority: ${task.priority}
+                                        ${task.pages_assigned.length > 0 ? `• Pages: ${task.pages_assigned.length}` : ''}
+                                    </div>
+                                    ${task.status === 'running' ? `
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                                        </div>
+                                    ` : ''}
+                                    ${task.error_message ? `<div style="color: #ff4444; font-size: 12px; margin-top: 4px;">${task.error_message}</div>` : ''}
+                                </div>
+                                <span class="status-badge ${task.status}">${task.status}</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+                document.getElementById('lastUpdated').textContent = 
+                    `Last updated: ${new Date().toLocaleTimeString()}`;
+                    
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Error loading dashboard data. Please check console.');
+            }
+        }
+        
+        // Load data on page load
+        loadData();
+        
+        // Auto-refresh every 5 seconds
+        setInterval(loadData, 5000);
+    </script>
+</body>
+</html>
+    """
