@@ -10,3 +10,7 @@ src/data/metadata.json
 src/data/processed/
 data/processed/
 env
+
+# Logs
+logs/
+*.log

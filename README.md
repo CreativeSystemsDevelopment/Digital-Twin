@@ -1,36 +1,310 @@
 # Digital Twin Documentation Pipeline
 
-This project ingests all documentation for a specific diecast machine and converts it into a searchable database/vector store for semantic querying. Initial scope is to intake and persist all raw documentation locally, then focus on schematic extraction.
+This project ingests all documentation for a specific diecast machine and converts it into a searchable database/vector store for semantic querying. It features a beautiful dark neumorphic UI with AI-powered document extraction capabilities.
 
-## Current focus
-- Provide a simple upload API to store source documents locally (organized per machine).
-- Track basic metadata for each upload (filename, machine id, doc type, checksum, size, timestamp).
-- Keep raw docs available in the workspace while avoiding accidental commits.
+## ⚡ Quick Start (Recommended)
 
-## Setup
-1) Create a virtual environment: `python -m venv .venv && source .venv/bin/activate`
-2) Install dependencies: `pip install -e .`
-3) (Optional) To use Gemini locally, copy `.env.example` to `.env` and set `GEMINI_API_KEY` (kept out of git).
+### Prerequisites
+- **Python 3.10+** - [Download Python](https://www.python.org/downloads/)
+- **Node.js 18+** - [Download Node.js](https://nodejs.org/)
 
-## Run the local intake API + web UI
-- Start the service: `uvicorn src.digital_twin.app:app --reload --port 8000`
-- Open the web UI: http://127.0.0.1:5173 (Frontend)
-- Health check: `curl http://127.0.0.1:8000/health`
+### Automatic Setup & Start
 
-### API examples (optional)
-- Single file: `curl -X POST -F "file=@/path/to/doc.pdf" -F "machine_id=machine-001" -F "doc_type=schematic" http://127.0.0.1:8000/upload`
-- List stored files (optionally filter): `curl "http://127.0.0.1:8000/files?machine_id=machine-001"`
+#### On Linux/Mac:
+```bash
+# 1. Setup (run once)
+./setup.sh
 
-## Storage layout
-- Uploaded files: `data/raw/<machine_id>/<timestamp>_<original_name>`
-- Metadata log: `data/metadata.json`
-- Git ignores raw uploads and metadata by default to prevent accidental commits.
+# 2. Start the application
+./start.sh
+```
 
-## Next steps
-- Define the structured schema for schematic elements (symbols, nets, references, parameters).
-- Add parsers for the diecast machine schematic formats and emit normalized JSON.
-- Generate embeddings for structured + text fields and push to a vector store for semantic queries.
-- Add a minimal UI/CLI for querying once extraction is in place.
+#### On Windows:
+```cmd
+REM 1. Setup (run once)
+setup.bat
 
-## Visibility
-- Make the GitHub repo private via Settings → General → Danger Zone → Change visibility.
+REM 2. Start the application
+start.bat
+```
+
+That's it! 🎉 The application will be available at:
+- **Frontend UI**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs
+
+### What the Scripts Do
+
+**setup.sh / setup.bat**:
+- ✅ Checks Python and Node.js versions
+- ✅ Creates Python virtual environment
+- ✅ Installs backend dependencies
+- ✅ Installs frontend dependencies (using pnpm or npm)
+- ✅ Creates .env file from template
+- ✅ Sets up data directories
+
+**start.sh / start.bat**:
+- ✅ Starts backend (FastAPI) on port 8000
+- ✅ Starts frontend (Vite + React) on port 5173
+- ✅ Monitors both services
+- ✅ Creates log files in `logs/` directory
+- ✅ Auto-opens browser (Windows)
+
+Press `Ctrl+C` to stop all services.
+
+---
+
+## 📖 Manual Setup (Alternative)
+
+If you prefer to set up manually or the scripts don't work on your system:
+
+### Backend Setup
+```bash
+# 1. Create virtual environment
+python -m venv .venv
+
+# 2. Activate virtual environment
+source .venv/bin/activate  # Linux/Mac
+# or
+.venv\Scripts\activate.bat  # Windows
+
+# 3. Install dependencies
+pip install -e .
+
+# 4. Create .env file (optional, for AI features)
+cp .env.example .env
+# Edit .env and add your GEMINI_API_KEY
+```
+
+### Frontend Setup
+```bash
+cd frontend
+
+# Install dependencies (using pnpm recommended, or npm)
+pnpm install
+# or
+npm install
+```
+
+### Running Manually
+
+**Terminal 1 - Backend:**
+```bash
+source .venv/bin/activate  # or .venv\Scripts\activate.bat on Windows
+uvicorn src.digital_twin.app:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd frontend
+pnpm run dev  # or npm run dev
+```
+
+---
+
+## 🎨 Features
+
+### Beautiful Dark Neumorphic UI
+- Modern dark theme with soft 3D-style design
+- Responsive and accessible interface
+- Smooth animations and transitions
+- Built with React 19 + TypeScript
+
+### Document Management
+- **Upload**: Drag-and-drop document upload with real-time progress
+- **Library**: Browse, search, and filter documents
+- **Categories**: Auto-detection of document types (schematics, wiring diagrams, parts lists, etc.)
+- **Machine Organization**: Organize documents by machine/production line
+
+### AI-Powered Extraction (Optional)
+- **Gemini AI Integration**: Extract structured data from schematics
+- **Component Detection**: Identify electrical components and symbols
+- **Wiring Analysis**: Extract wire connections and terminal information
+- **Real-time Feedback**: Visual step-by-step extraction workflow
+
+### Dashboard
+- System status monitoring
+- Recent activity feed
+- Statistics and metrics
+- Machine sync status
+
+---
+
+## 🏗️ Project Structure
+
+```
+Digital-Twin/
+├── frontend/               # React + TypeScript frontend
+│   ├── src/
+│   │   ├── components/    # Reusable UI components
+│   │   ├── pages/         # Application pages
+│   │   └── index.css      # Neumorphic design system
+│   └── package.json
+├── src/
+│   └── digital_twin/      # Python backend
+│       ├── app.py         # FastAPI application
+│       ├── config.py      # Configuration
+│       └── gemini_service.py  # AI extraction service
+├── data/                  # Document storage (gitignored)
+├── logs/                  # Application logs (created on startup)
+├── setup.sh / setup.bat   # Setup scripts
+├── start.sh / start.bat   # Startup scripts
+└── pyproject.toml         # Python dependencies
+```
+
+---
+
+## 🔧 Configuration
+
+### Environment Variables (.env)
+
+```bash
+# Gemini API Key (optional, for AI extraction)
+GEMINI_API_KEY=your_api_key_here
+```
+
+### Storage Layout
+- **Uploaded files**: `data/<machine_id>/raw_data/<timestamp>_<filename>`
+- **Imported files**: `data/<machine_id>/imported/`
+- **Metadata**: `src/data/metadata.json`
+
+All raw uploads and metadata are gitignored by default.
+
+---
+
+## 🚀 API Reference
+
+### Health Check
+```bash
+curl http://localhost:8000/health
+```
+
+### Upload Documents
+```bash
+curl -X POST \
+  -F "files=@/path/to/document.pdf" \
+  -F "machine_label=Machine-001" \
+  http://localhost:8000/upload/stream
+```
+
+### List Documents
+```bash
+# All documents
+curl http://localhost:8000/files
+
+# Filter by machine
+curl "http://localhost:8000/files?machine_id=Machine-001"
+```
+
+### API Documentation
+Interactive API documentation is available at:
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+---
+
+## 🛠️ Troubleshooting
+
+### Setup Issues
+
+**"Python is not installed"**
+- Install Python 3.10+ from [python.org](https://www.python.org/downloads/)
+- Make sure Python is in your PATH
+
+**"Node.js is not installed"**
+- Install Node.js 18+ from [nodejs.org](https://nodejs.org/)
+- Make sure Node is in your PATH
+
+**"Virtual environment activation failed"**
+- On Windows, you may need to run: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+- Or use Command Prompt instead of PowerShell
+
+**"Frontend dependencies failed to install"**
+- Clear npm cache: `npm cache clean --force`
+- Delete `frontend/node_modules` and `frontend/package-lock.json`
+- Run setup again
+
+### Runtime Issues
+
+**"Port 8000 or 5173 already in use"**
+- Check for other processes: `lsof -i :8000` (Mac/Linux) or `netstat -ano | findstr :8000` (Windows)
+- Stop conflicting processes or change ports in the code
+
+**"Backend not responding"**
+- Check `logs/backend.log` for errors
+- Ensure virtual environment is activated
+- Verify Python dependencies are installed
+
+**"Frontend shows blank page"**
+- Check `logs/frontend.log` for errors
+- Clear browser cache and reload
+- Check browser console for JavaScript errors
+
+**"AI extraction not working"**
+- Verify `GEMINI_API_KEY` is set in `.env` file
+- Check if API key is valid at http://localhost:8000/gemini/status
+- Ensure required document files are in place
+
+### Getting Help
+
+Check the logs:
+```bash
+# View backend logs
+tail -f logs/backend.log
+
+# View frontend logs  
+tail -f logs/frontend.log
+```
+
+For more detailed documentation:
+- `QUICK_START.md` - Detailed quick start guide
+- `UI_DESIGN_COMPLETE.md` - UI/UX documentation
+- `COMPONENT_SHOWCASE.md` - Component library details
+
+---
+
+## 📝 Development
+
+### Backend Development
+```bash
+source .venv/bin/activate
+uvicorn src.digital_twin.app:app --reload --port 8000
+```
+
+### Frontend Development
+```bash
+cd frontend
+pnpm run dev  # or npm run dev
+```
+
+### Building for Production
+```bash
+cd frontend
+pnpm run build  # or npm run build
+```
+
+### Linting
+```bash
+cd frontend
+pnpm run lint  # or npm run lint
+```
+
+---
+
+## 🔒 Security
+
+- All API keys should be stored in `.env` (gitignored)
+- Uploaded documents are stored locally and not committed to git
+- CORS is configured for development (update for production)
+
+---
+
+## 📄 License
+
+[Add your license information here]
+
+---
+
+## 🤝 Contributing
+
+[Add contribution guidelines here]
