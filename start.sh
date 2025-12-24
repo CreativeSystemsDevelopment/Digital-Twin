@@ -121,7 +121,7 @@ echo "  🔧 Backend:   ${GREEN}http://localhost:8000${NC}"
 echo "  📚 API Docs:  ${GREEN}http://localhost:8000/docs${NC}"
 echo "  ❤️  Health:   ${GREEN}http://localhost:8000/health${NC}"
 echo ""
-print_info "Process IDs:"
+print_info "Process IDs (may be incorrect if services failed to start):"
 echo "  Backend:  ${BACKEND_PID}"
 echo "  Frontend: ${FRONTEND_PID}"
 echo ""
@@ -135,4 +135,14 @@ echo ""
 # Tail logs in real-time
 print_step "Streaming logs (press Ctrl+C to stop)..."
 echo ""
-tail -f logs/backend.log logs/frontend.log 2>/dev/null || wait
+
+# Wait for log files to be created
+sleep 2
+
+# Stream logs if files exist, otherwise just wait
+if [ -f "logs/backend.log" ] && [ -f "logs/frontend.log" ]; then
+    tail -f logs/backend.log logs/frontend.log 2>/dev/null || sleep infinity
+else
+    echo "Waiting for log files to be created..."
+    sleep infinity
+fi

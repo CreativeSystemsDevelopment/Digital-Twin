@@ -32,8 +32,9 @@ if not exist "logs" mkdir logs
 
 REM Start Backend
 echo [1/2] Starting Backend (FastAPI on port 8000)...
+REM Note: Windows version uses simplified health checking compared to Linux
 start "Digital Twin Backend" /MIN cmd /c ".venv\Scripts\activate.bat && uvicorn src.digital_twin.app:app --reload --host 0.0.0.0 --port 8000 > logs\backend.log 2>&1"
-echo SUCCESS: Backend started
+echo SUCCESS: Backend started (check logs\backend.log for status)
 
 REM Wait for backend to initialize
 timeout /t 3 /nobreak >nul
