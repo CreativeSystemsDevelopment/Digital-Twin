@@ -1,6 +1,7 @@
 README.md
 pyproject.toml
 src/digital_twin/__init__.py
+src/digital_twin/agent_monitor.py
 src/digital_twin/app.py
 src/digital_twin/config.py
 src/digital_twin/gemini_service.py

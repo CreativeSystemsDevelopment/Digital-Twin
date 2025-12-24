@@ -32,6 +32,7 @@ That's it! 🎉 The application will be available at:
 - **Frontend UI**: http://localhost:5173
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
+- **Agent Monitor Dashboard**: http://localhost:8000/monitor/dashboard
 
 ### What the Scripts Do
 
@@ -122,11 +123,20 @@ pnpm run dev  # or npm run dev
 - **Wiring Analysis**: Extract wire connections and terminal information
 - **Real-time Feedback**: Visual step-by-step extraction workflow
 
+### Agent Monitoring System 🆕
+- **Multi-Agent Tracking**: Monitor multiple extraction agents in real-time
+- **Task Management**: Assign, track, and manage extraction tasks
+- **Progress Reporting**: Live progress updates with page-level granularity
+- **Dashboard**: Visual monitoring interface with auto-refresh
+- **Heartbeat System**: Detect stalled or unresponsive agents
+- **RESTful API**: Complete API for programmatic monitoring
+
 ### Dashboard
 - System status monitoring
 - Recent activity feed
 - Statistics and metrics
 - Machine sync status
+- Agent monitoring dashboard
 
 ---
 
@@ -144,8 +154,11 @@ Digital-Twin/
 │   └── digital_twin/      # Python backend
 │       ├── app.py         # FastAPI application
 │       ├── config.py      # Configuration
+│       ├── agent_monitor.py    # Agent monitoring system 🆕
 │       └── gemini_service.py  # AI extraction service
 ├── data/                  # Document storage (gitignored)
+├── examples/              # Example scripts
+│   └── monitor_demo.py    # Agent monitoring demo 🆕
 ├── logs/                  # Application logs (created on startup)
 ├── setup.sh / setup.bat   # Setup scripts
 ├── start.sh / start.bat   # Startup scripts
@@ -288,6 +301,69 @@ pnpm run build  # or npm run build
 cd frontend
 pnpm run lint  # or npm run lint
 ```
+
+---
+
+## 🤖 Agent Monitoring
+
+The system includes a comprehensive agent monitoring solution for tracking extraction agents working on schematic digitization.
+
+### Quick Start
+
+View the monitoring dashboard:
+```
+http://localhost:8000/monitor/dashboard
+```
+
+Run the demo:
+```bash
+python examples/monitor_demo.py
+```
+
+### Features
+
+- **Real-time Tracking**: Monitor multiple agents and their tasks
+- **Progress Updates**: Track extraction progress at page-level granularity
+- **Status Management**: View agent and task statuses (pending, running, completed, failed)
+- **Heartbeat System**: Detect stalled or unresponsive agents
+- **Persistence**: State survives server restarts
+- **RESTful API**: Complete programmatic access
+
+### API Endpoints
+
+Key monitoring endpoints:
+- `GET /monitor/summary` - Overall system summary
+- `GET /monitor/agents` - List all agents
+- `GET /monitor/tasks` - List all tasks
+- `POST /monitor/agents/register` - Register new agent
+- `POST /monitor/tasks/assign` - Assign task to agent
+- `PUT /monitor/tasks/{task_id}/progress` - Update task progress
+
+### Example Usage
+
+```python
+from src.digital_twin.agent_monitor import get_monitor, AgentStatus
+
+# Get monitor instance
+monitor = get_monitor()
+
+# Register an agent
+agent_id = monitor.register_agent("My Extractor", "gemini_extractor")
+
+# Assign a task
+task_id = monitor.assign_task(
+    agent_id, 
+    "Extract pages 1-50",
+    "page_extraction",
+    pages=list(range(1, 51))
+)
+
+# Update progress
+monitor.update_task_progress(task_id, 0.5)
+monitor.heartbeat(agent_id, task_id)
+```
+
+For complete documentation, see [AGENT_MONITOR_DOCS.md](AGENT_MONITOR_DOCS.md)
 
 ---
 

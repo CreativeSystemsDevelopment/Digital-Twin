@@ -1,0 +1,19 @@
+{
+  "agents": {
+    "9fd22a6a-f630-4e38-bbde-09323b43e89d": {
+      "agent_id": "9fd22a6a-f630-4e38-bbde-09323b43e89d",
+      "name": "Test Agent",
+      "agent_type": "test_extractor",
+      "status": "pending",
+      "current_task_id": null,
+      "tasks_completed": 0,
+      "tasks_failed": 0,
+      "created_at": 1766562019.0544975,
+      "last_heartbeat": null,
+      "last_activity": null,
+      "metadata": {}
+    }
+  },
+  "tasks": {},
+  "saved_at": 1766562019.054564
+}

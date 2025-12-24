@@ -114,7 +114,13 @@ class AgentMonitor:
         self.agents: Dict[str, Agent] = {}
         self.tasks: Dict[str, AgentTask] = {}
         self.lock = threading.Lock()
-        self.persistence_path = persistence_path or Path("data/monitor_state.json")
+        # Ensure persistence_path is a Path object
+        if persistence_path is None:
+            self.persistence_path = Path("data/monitor_state.json")
+        elif isinstance(persistence_path, str):
+            self.persistence_path = Path(persistence_path)
+        else:
+            self.persistence_path = persistence_path
         self.callbacks: List[Callable] = []
         
         # Load existing state if available
